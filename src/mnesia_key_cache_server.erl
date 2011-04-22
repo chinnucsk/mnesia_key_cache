@@ -1,7 +1,7 @@
 -module(mnesia_key_cache_server).
 
--author('@voluntas').
--author('@itawasa').
+-author('voluntas').
+-author('shino').
 
 -behaviour(gen_server).
 
@@ -15,15 +15,13 @@
          terminate/2,
          code_change/3]).
 
--include_lib("eunit/include/eunit.hrl").
-
 -record(state, {keys :: []}).  
 
 -spec maybe_key(atom()) -> not_found | binary().
 maybe_key(Table) ->
   gen_server:call(name(Table), {maybe_key, Table}).
 
--spec keys(atom()) -> list().
+-spec maybe_keys(atom()) -> list().
 maybe_keys(Table) ->
   mnesia:activity(async_dirty, fun mnesia:all_keys/1, [Table], mnesia_frag).
 
@@ -33,7 +31,7 @@ start_link(Table) ->
 init([Table]) ->
   {ok, #state{keys = maybe_keys(Table)}}.
 
-handle_call(maybe_key, _From, State) ->
+handle_call({maybe_key, Table}, _From, State) ->
   case State#state.keys of
     [] ->
       case maybe_keys(State#state.table) of

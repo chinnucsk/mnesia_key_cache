@@ -1,6 +1,6 @@
 -module(mnesia_key_cache).
 
--author('@voluntas').
+-author('voluntas').
 
 -export([activity/1]).
 
