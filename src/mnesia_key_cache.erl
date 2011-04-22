@@ -13,7 +13,7 @@
 -define(DEFAULT_TRANSACTION_RETRY, 16).
 -define(DEFAULT_RETRY, 32).
 
--define(MNESIA_KEY_CACHE_TABLE_PREFIX, mnesia_key_cache_srv_table_prefix).
+-define(MNESIA_KEY_CACHE_TABLE_PREFIX, mnesia_key_cache_table_prefix).
 
 start() ->
   application:start(mnesia_key_cache).
@@ -25,9 +25,8 @@ start(Table) ->
   supervisor:start_child(mnesia_key_cache_sup, [Table]).
 
 stop(Table) ->
-  supervisor:terminate_child(name(Table)),
-  supervisor:delete_child(name(Table)),
-  ok.
+  supervisor:terminate_child(mnesia_key_cache_sup, name(Table)),
+  supervisor:delete_child(mnesia_key_cache_sup, name(Table)).
 
 -spec activity(atom(), fun()) -> ok | {ok, term()} | {error, not_found} | {error, giveup}.
 activity(Table, F) ->
@@ -55,7 +54,14 @@ activity0([_H|T], Table, F) ->
 
 -spec name(atom()) -> atom().
 name(Table) ->
-  list_to_atom(io_lib:format("~s_~s", [Table, ?MNESIA_KEY_CACHE_TABLE_PREFIX])).
+  list_to_atom(lists:flatten(io_lib:format("~s_~s", [Table, ?MNESIA_KEY_CACHE_TABLE_PREFIX]))).
 
 -ifdef(TEST).
+
+-include_lib("eunit/include/eunit.hrl").
+
+name_test() ->
+  ?assertEqual(test_mnesia_key_cache_table_prefix, name(test)),
+  ok.
+
 -endif.

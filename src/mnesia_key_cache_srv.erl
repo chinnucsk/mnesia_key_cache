@@ -1,4 +1,4 @@
--module(mnesia_key_cache_server).
+-module(mnesia_key_cache_srv).
 
 -author('voluntas').
 -author('shino').
