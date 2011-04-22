@@ -17,7 +17,6 @@
 
 -record(state, {keys :: []}).  
 
--define(MNESIA_KEY_CACHE_TABLE_PREFIX, mnesia_key_cache_srv_table_prefix).
 
 -spec maybe_key(atom()) -> not_found | binary().
 maybe_key(Table) ->
