@@ -1,6 +1,11 @@
 -module(mnesia_key_cache).
 
+-author('@voluntas').
+
 -export([activity/1]).
+
+-define(DEFAULT_TRANSACTION_RETRY, 16).
+-define(DEFAULT_RETRY, 32).
 
 -spec activity(fun()) -> ok | {ok, term()} | {error, not_found} | {error, giveup}.
 activity(F) ->
@@ -28,4 +33,3 @@ activity0([H|T], F) ->
 
 -ifdef(TEST).
 -endif.
-

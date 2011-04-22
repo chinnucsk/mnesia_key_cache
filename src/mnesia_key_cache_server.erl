@@ -3,6 +3,10 @@
 -author('@voluntas').
 -author('@itawasa').
 
+-behaviour(gen_server).
+
+-export([maybe_key/1]).
+
 -export([start_link/0]).
 -export([init/1,
          handle_call/3,
@@ -13,34 +17,33 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
--define(DEFAULT_RETRY, 3).
+-record(state, {keys :: []}).  
 
--record(state, {keys :: [],
-                table :: atom()}).  
+-spec maybe_key(atom()) -> not_found | binary().
+maybe_key(Table) ->
+  gen_server:call(name(Table), {maybe_key, Table}).
 
-%% erl +P 500000 -env ERL_MAX_ETS_TABLES 500000 -env ERL_MAX_PORTS 100000
-  
--spec random_key() -> not_found | binary().
-random_key() ->
-  gen_server:call(?MODULE, random_key).
+-spec keys(atom()) -> list().
+maybe_keys(Table) ->
+  mnesia:activity(async_dirty, fun mnesia:all_keys/1, [Table], mnesia_frag).
 
-start_link() ->
-  gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(Table) ->
+  gen_server:start_link({local, name(Table)}, ?MODULE, [Table], []).
 
-init(_Args) ->
-  {ok, #state{keys = keys()}}.
+init([Table]) ->
+  {ok, #state{keys = maybe_keys(Table)}}.
 
-handle_call(random_key, _From, State) ->
+handle_call(maybe_key, _From, State) ->
   case State#state.keys of
     [] ->
-      case keys() of
+      case maybe_keys(State#state.table) of
         [] ->
           {reply, not_found, State#state{keys = []}};
         [Key|Keys] ->
           {reply, Key, State#state{keys = Keys}}
       end;
     [Key] ->
-      {reply, Key, State#state{keys = keys()}};
+      {reply, Key, State#state{keys = maybe_keys(Table)}};
     [Key|Keys] ->
       {reply, Key, State#state{keys = Keys}}
   end;
@@ -58,9 +61,3 @@ terminate(_Reason, _State) ->
                                                                                 
 code_change(_OldVsn, State, _Extra) ->
   {ok, State}.
-
--spec keys() -> list().
-keys() ->
-  %% テーブルサイズを事前に調べてそもそも 0 だったら何もしないってのがあるといいのか？
-  mnesia:activity(async_dirty, fun mnesia:all_keys/1, [?STORE_TABLE], mnesia_frag).
-
