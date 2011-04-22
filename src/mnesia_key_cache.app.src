@@ -1,0 +1,12 @@
+{application, mnesia_key_cache,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { mnesia_key_cache_app, []}},
+  {env, []}
+ ]}.
