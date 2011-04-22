@@ -7,7 +7,7 @@
 
 -export([maybe_key/1]).
 
--export([start_link/0]).
+-export([start_link/1]).
 -export([init/1,
          handle_call/3,
          handle_cast/2,
@@ -17,16 +17,14 @@
 
 -record(state, {keys :: []}).  
 
+-define(MNESIA_KEY_CACHE_SRV_PREFIX, mnesia_key_cache_srv_prefix).
+
 -spec maybe_key(atom()) -> not_found | binary().
 maybe_key(Table) ->
-  gen_server:call(name(Table), {maybe_key, Table}).
-
--spec maybe_keys(atom()) -> list().
-maybe_keys(Table) ->
-  mnesia:activity(async_dirty, fun mnesia:all_keys/1, [Table], mnesia_frag).
+  gen_server:call(mnesia_key_cache:name(Table), {maybe_key, Table}).
 
 start_link(Table) ->
-  gen_server:start_link({local, name(Table)}, ?MODULE, [Table], []).
+  gen_server:start_link({local, mnesia_key_cache:name(Table)}, ?MODULE, [Table], []).
 
 init([Table]) ->
   {ok, #state{keys = maybe_keys(Table)}}.
@@ -59,3 +57,11 @@ terminate(_Reason, _State) ->
                                                                                 
 code_change(_OldVsn, State, _Extra) ->
   {ok, State}.
+
+
+
+-spec maybe_keys(atom()) -> list().
+maybe_keys(Table) ->
+  mnesia:activity(async_dirty, fun mnesia:all_keys/1, [Table], mnesia_frag).
+
+
