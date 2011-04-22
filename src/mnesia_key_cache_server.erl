@@ -17,7 +17,7 @@
 
 -record(state, {keys :: []}).  
 
--define(MNESIA_KEY_CACHE_SRV_PREFIX, mnesia_key_cache_srv_prefix).
+-define(MNESIA_KEY_CACHE_TABLE_PREFIX, mnesia_key_cache_srv_table_prefix).
 
 -spec maybe_key(atom()) -> not_found | binary().
 maybe_key(Table) ->
@@ -32,7 +32,7 @@ init([Table]) ->
 handle_call({maybe_key, Table}, _From, State) ->
   case State#state.keys of
     [] ->
-      case maybe_keys(State#state.table) of
+      case maybe_keys(Table) of
         [] ->
           {reply, not_found, State#state{keys = []}};
         [Key|Keys] ->
