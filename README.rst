@@ -21,11 +21,11 @@ sample code::
 
   update() ->
     F = fun(Key) ->
-          case mnesia:read(Table, Key, read) of
+          case mnesia:read(?TABLE, Key, read) of
             [] ->
               {error, retry};
             [Record] ->
-              mnesia:write(Table, Record, sticky_write)
+              mnesia:write(?TABLE, Record, sticky_write)
           end
         end,
     case activity(F) of
