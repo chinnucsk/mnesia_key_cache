@@ -53,7 +53,9 @@ activity_test_() ->
         lists:foreach(fun(_) ->
                         mnesia_key_cache:activity(?STORE_TABLE, F)
                       end,
-                      lists:duplicate(1000, dummy)),
+                      lists:duplicate(999, dummy)),
+        ?assertEqual(ok, mnesia_key_cache:activity(?STORE_TABLE, F)),
+        mnesia_key_cache:activity(?STORE_TABLE, F),
         ?assertEqual({error, not_found}, mnesia_key_cache:activity(?STORE_TABLE, F))
       end
     )
