@@ -2,7 +2,7 @@
 
 -author('voluntas').
 
--export([start/0, stop/0]).
+%% -export([start/0, stop/0]).
 
 -export([start/1, stop/1]).
 
@@ -11,18 +11,18 @@
 -export([name/1]).
 
 -define(DEFAULT_TRANSACTION_RETRY, 16).
--define(DEFAULT_RETRY, 32).
+-define(DEFAULT_RETRY, 16).
 
 -define(MNESIA_KEY_CACHE_TABLE_PREFIX, mnesia_key_cache_table_prefix).
 
-start() ->
-  application:start(mnesia_key_cache).
-
-stop() ->
-  application:stop(mnesia_key_cache).
+%% start() ->
+%%   application:start(mnesia_key_cache).
+%% 
+%% stop() ->
+%%   application:stop(mnesia_key_cache).
 
 start(Table) ->
-  supervisor:start_child(mnesia_key_cache_sup, [Table]).
+  {ok, _Pid} = supervisor:start_child(mnesia_key_cache_sup, [Table]).
 
 stop(Table) ->
   supervisor:terminate_child(mnesia_key_cache_sup, name(Table)),
@@ -30,13 +30,13 @@ stop(Table) ->
 
 -spec activity(atom(), fun()) -> ok | {ok, term()} | {error, not_found} | {error, giveup}.
 activity(Table, F) ->
-  activity0(lists:seq(0, 32), Table, F).
+  activity0(lists:seq(0, 16), Table, F).
 
 -spec activity0(list(), atom(), fun()) -> ok | {ok, term()} | {error, not_found} | {error, giveup}.
 activity0([], _Table, _F) ->
   {error, giveup};
 activity0([_H|T], Table, F) ->
-  case mnesia_key_cache_server:maybe_key(Table) of
+  case mnesia_key_cache_srv:maybe_key(Table) of
     not_found ->
       {error, not_found};
     Key ->
@@ -48,7 +48,9 @@ activity0([_H|T], Table, F) ->
         {ok, Result} ->
           {ok, Result};
         {error, retry} ->
-          activity0(T, Table, F)
+          activity0(T, Table, F);
+        {error, Reason} ->
+          {error, Reason}
       end
   end.
 
